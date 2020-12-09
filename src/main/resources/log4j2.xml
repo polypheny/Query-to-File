@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2019-2020 The Polypheny Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
+            <!-- <PatternLayout pattern="%d{HH:mm:ss.SSS} [%highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue}] [%t]: %msg%n" disableAnsi="false"/> -->
+            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} %level [%t]: %msg%n}{FATAL=bg_red, ERROR=red, WARN=yellow bold, INFO=black, DEBUG=green bold, TRACE=blue}" disableAnsi="false"/>
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <!--  <logger name="io" level="ERROR">
+            <AppenderRef ref="ConsoleAppender"/>
+        </logger>
+        <logger name="org" level="INFO">
+            <AppenderRef ref="ConsoleAppender"/>
+        </logger>  -->
+        <logger name="polypheny.qtf" level="TRACE">
+            <AppenderRef ref="ConsoleAppender"/>
+        </logger>
+        <!-- <logger name="org.polypheny.db.jdbc" level="TRACE">
+        </logger> -->
+        <!--<logger name="org.polypheny.db.plan.RelOptPlanner" level="DEBUG">
+        </logger> -->
+        <!-- <logger name="org.polypheny.db.plan.hep.HepPlanner" level="TRACE">
+        </logger> -->
+        <Root level="error"/>
+    </Loggers>
+</Configuration>
