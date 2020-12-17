@@ -19,6 +19,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.Controller">
@@ -30,7 +31,12 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
-        <TextArea prefHeight="200.0" prefWidth="200.0" id="console" fx:id="console"/>
-        <Button mnemonicParsing="false" onMouseClicked="#submit" text="Button" GridPane.rowIndex="1"/>
+        <TextArea id="console" fx:id="console" prefHeight="200.0" prefWidth="200.0" text="SELECT * FROM public.emps"/>
+        <FlowPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+            <children>
+                <Button mnemonicParsing="false" onMouseClicked="#reset" text="reset"/>
+                <Button mnemonicParsing="false" onMouseClicked="#submit" text="run"/>
+            </children>
+        </FlowPane>
     </children>
 </GridPane>

@@ -17,38 +17,62 @@
 package org.polypheny.qtf;
 
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import com.google.gson.Gson;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import lombok.extern.slf4j.Slf4j;
+import org.polypheny.qtf.fuse.ResultFS;
+import org.polypheny.qtf.web.QueryRequest;
+import org.polypheny.qtf.web.SocketClient;
 
 
 @Slf4j
 public class Controller {
 
-    final Connector connector;
     @FXML
     private TextArea console;
+    private final ResultFS myFuse;
+    private SocketClient socketClient;
+    private final Gson gson = new Gson();
 
     public Controller() {
-        this.connector = new Connector();
+        this.myFuse = new ResultFS();
+        File qtfRoot = new File( System.getProperty( "user.home" ), ".polypheny/qtf" );
+        qtfRoot.mkdirs();
+        //unmount in case it is still mounted
+        myFuse.umount();
+        myFuse.mount( qtfRoot.toPath() );
+
+        try {
+            this.socketClient = new SocketClient( new URI( QTFConfig.getWebSocketUrl() ), myFuse );
+            log.info( "Connecting to websocket..." );
+            socketClient.connectBlocking();
+            log.info( "Established a connection with the websocket" );
+        } catch ( URISyntaxException | InterruptedException e ) {
+            log.error( "Could not connect to websocket.", e );
+            System.exit( 1 );
+        }
     }
 
     @FXML
     public void submit() {
+        myFuse.reset();
         String query = console.getText();
-        try ( Statement statement = connector.getStatement() ) {
-            ResultSet rs = statement.executeQuery( query );
-            while ( rs.next() ) {
-                for ( int i = 0; i < rs.getMetaData().getColumnCount(); i++ ) {
-                    System.out.print( "|" + rs.getString( i + 1 ) );
-                }
-                System.out.print( "|\n" );
-            }
-        } catch ( SQLException e ) {
-            log.error( "SQL exception", e );
-        }
+        socketClient.send( gson.toJson( new QueryRequest( query ), QueryRequest.class ) );
+        //the socketClient handles the asynchronous response
     }
+
+    @FXML
+    public void reset() {
+        myFuse.reset();
+    }
+
+    public void shutdown() {
+        myFuse.umount();
+        socketClient.close();
+    }
+
 }

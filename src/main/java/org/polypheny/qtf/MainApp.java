@@ -36,8 +36,10 @@ public class MainApp extends Application {
     @Override
     public void start( Stage primaryStage ) {
         Parent root = null;
+        FXMLLoader loader = null;
         try {
-            root = FXMLLoader.load( getClass().getResource( "/fxml/sample.fxml" ) );
+            loader = new FXMLLoader( getClass().getResource( "/fxml/sample.fxml" ) );
+            root = loader.load();
         } catch ( IOException e ) {
             e.printStackTrace();
             System.exit( 1 );
@@ -45,5 +47,10 @@ public class MainApp extends Application {
         primaryStage.setTitle( "Polypheny-DB Query-To-File" );
         primaryStage.setScene( new Scene( root, 300, 275 ) );
         primaryStage.show();
+        //see https://stackoverflow.com/questions/44439408/javafx-controller-detect-when-stage-is-closing
+        Controller controller = loader.getController();
+        primaryStage.setOnHidden( e -> {
+            controller.shutdown();
+        } );
     }
 }

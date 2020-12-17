@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.polypheny.qtf;
+package org.polypheny.qtf.web;
 
 
-public class Main {
+public class Result {
 
-    public static void main( String[] args ) {
-        Main main = new Main();
-        main.loadLibFuse();
-        MainApp.run( new String[]{} );
+    public class DbColumn {
+
+        public String name;
+        public String dataType;
     }
 
-    public void loadLibFuse() {
-        //see https://github.com/RaiMan/SikuliX1/issues/350
-        // and https://stackoverflow.com/questions/2370545/how-do-i-make-a-target-library-available-to-my-java-app
-        System.setProperty( "jna.library.path", "/usr/local/lib/" );
-        System.load( "/usr/local/lib/libfuse.2.dylib" );
-    }
+
+    public DbColumn[] header;
+    public String[][] data;
+    public String error;
 
 }
