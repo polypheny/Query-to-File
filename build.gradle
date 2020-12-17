@@ -19,11 +19,14 @@ buildscript {
         mavenCentral()
         jcenter()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url 'https://plugins.gradle.org/m2/'
         }
     }
     dependencies {
-        classpath group: "io.freefair.gradle", name: "lombok-plugin", version: "5.0.1"
+        // Shadowing; used to make a fat jar (https://github.com/johnrengelman/shadow)
+        classpath group: "com.github.jengelman.gradle.plugins", name: "shadow", version: "5.2.0"
+        // Lombok (https://plugins.gradle.org/plugin/io.freefair.lombok)
+        classpath group: 'io.freefair.gradle', name: 'lombok-plugin', version: '5.0.1'
     }
 }
 
@@ -33,30 +36,38 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.8'
 }
 
-apply plugin: "java"
-apply plugin: "io.freefair.lombok"
+apply plugin: 'java'
+apply plugin: 'io.freefair.lombok'
+apply plugin: 'com.github.johnrengelman.shadow'
 
-mainClassName = 'polypheny.qtf.Main'
+mainClassName = 'org.polypheny.qtf.Main'
 
 group 'org.polypheny.qtf'
-version '1.0-SNAPSHOT'
+version = '1.0-SNAPSHOT'
 
 repositories {
     mavenLocal()
     maven {
         // DBIS Nexus
-        url "https://dbis-nexus.dmi.unibas.ch/repository/maven2/"
+        url 'https://dbis-nexus.dmi.unibas.ch/repository/maven2/'
     }
     jcenter()
     mavenCentral()
 }
 
 dependencies {
+
+    // logging
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30' // License: MIT
     implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.1' // License: Apache 2.0
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.1' // License: Apache 2.0
 
-    implementation group: "org.polypheny", name: "polypheny-jdbc-driver", version: "1.4"
+    compile group: 'com.github.serceman', name: 'jnr-fuse', version: '0.5.4' // License: MIT
+    implementation group: "org.apache.commons", name: "commons-lang3", version: '3.11' // License: Apache 2.0
+    implementation group: "com.google.code.gson", name: "gson", version: '2.8.6' // License: Apache 2.0
+
+    implementation group: 'com.konghq', name: 'unirest-java', version: '3.11.06' // License: MIT
+    compile group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.5.1' // License: MIT
 }
 
 test {
@@ -64,6 +75,43 @@ test {
 }
 
 javafx {
-    version = "11"
+    version = '11'
     modules = [ 'javafx.controls', 'javafx.fxml']
+}
+
+/**
+ * JARs
+ */
+jar {
+    manifest {
+        attributes "Manifest-Version": "1.0"
+        attributes "Copyright": "The Polypheny Project (polypheny.org)"
+        attributes "Version": project.version
+        attributes "Main-Class": mainClassName
+        attributes "Multi-Release": "true"
+        attributes "Implementation-Version": project.version
+    }
+}
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier "sources"
+    from sourceSets.main.allSource
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier "javadoc"
+    from javadoc.destinationDir
+}
+shadowJar {
+    zip64 true
+    classifier = ""
+    mergeServiceFiles {
+        setPath("META-INF/services")
+        include("io.grpc.*")
+    }
+}
+assemble.dependsOn shadowJar
+artifacts {
+    //archives jar // regular jar containing only the compiled source
+    archives shadowJar // fat jar which additionally contains all dependencies
+    archives sourcesJar // jar file containing the java doc files
+    archives javadocJar // jar file containing the source files
 }
