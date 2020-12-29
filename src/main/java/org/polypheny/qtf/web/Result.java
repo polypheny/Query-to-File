@@ -17,17 +17,44 @@
 package org.polypheny.qtf.web;
 
 
+import java.util.Arrays;
+
+
 public class Result {
 
-    public class DbColumn {
+    public static class DbColumn {
 
         public String name;
         public String dataType;
+        public boolean primary;
     }
 
 
+    public static class Debug {
+
+        public int affectedRows;
+        public String generatedQuery;
+    }
+
+
+    public String table;
     public DbColumn[] header;
     public String[][] data;
     public String error;
+    public Debug info;
+
+    public Result( String error ) {
+        this.error = error;
+    }
+
+    public boolean containsColumn( String columnName ) {
+        final String test;
+        if ( columnName.contains( "." ) ) {
+            test = columnName.substring( 0, columnName.lastIndexOf( "." ) );
+        } else {
+            test = columnName;
+        }
+        return Arrays.stream( header ).filter( h -> h.name.equals( test ) ).count() == 1;
+    }
 
 }

@@ -17,62 +17,84 @@
 package org.polypheny.qtf;
 
 
-import com.google.gson.Gson;
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import lombok.extern.slf4j.Slf4j;
-import org.polypheny.qtf.fuse.ResultFS;
-import org.polypheny.qtf.web.QueryRequest;
-import org.polypheny.qtf.web.SocketClient;
+import org.polypheny.qtf.web.Result;
 
 
 @Slf4j
-public class Controller {
+public class Controller extends QueryInterface {
 
     @FXML
     private TextArea console;
-    private final ResultFS myFuse;
-    private SocketClient socketClient;
-    private final Gson gson = new Gson();
+    @FXML
+    private Label feedback;
+    @FXML
+    private TextField tableId;
 
     public Controller() {
-        this.myFuse = new ResultFS();
-        File qtfRoot = new File( System.getProperty( "user.home" ), ".polypheny/qtf" );
-        qtfRoot.mkdirs();
-        //unmount in case it is still mounted
-        myFuse.umount();
-        myFuse.mount( qtfRoot.toPath() );
-
-        try {
-            this.socketClient = new SocketClient( new URI( QTFConfig.getWebSocketUrl() ), myFuse );
-            log.info( "Connecting to websocket..." );
-            socketClient.connectBlocking();
-            log.info( "Established a connection with the websocket" );
-        } catch ( URISyntaxException | InterruptedException e ) {
-            log.error( "Could not connect to websocket.", e );
-            System.exit( 1 );
-        }
+        super();
     }
 
     @FXML
     public void submit() {
-        myFuse.reset();
-        String query = console.getText();
-        socketClient.send( gson.toJson( new QueryRequest( query ), QueryRequest.class ) );
-        //the socketClient handles the asynchronous response
+        if ( !tableId.getText().equals( "" ) ) {
+            super.submitTableRequest( tableId.getText() );
+        } else {
+            String query = console.getText();
+            super.submitQueryRequest( query );
+        }
+        feedback.setText( "Waiting for response" );
+    }
+
+    @Override
+    public void onResultUpdate( Result result ) {
+        final String message;
+        if ( result.error != null ) {
+            message = "The query failed";
+        } else if ( result.data == null && result.info != null ) {
+            message = String.format( "The query was successful and affected %d rows.", result.info.affectedRows );
+        } else {
+            message = String.format( "Fetched %d rows\n", result.data.length );
+        }
+        printFeedback( message );
     }
 
     @FXML
-    public void reset() {
-        myFuse.reset();
+    public void onTableIdKeyUp() {
+        if ( tableId.getText().equals( "" ) && console.isDisabled() ) {
+            console.setDisable( false );
+        } else if ( !tableId.getText().equals( "" ) && !console.isDisabled() ) {
+            console.setDisable( true );
+        }
+    }
+
+    @FXML
+    public void onCommit() {
+        Result result = super.commit();
+        if ( result.error != null ) {
+            printFeedback( "The commit failed. Check the console for more information." );
+            log.error( "The commit failed: " + result.error );
+        } else {
+            if ( result.info.affectedRows == 1 ) {
+                printFeedback( "The commit was successful. 1 row was affected." );
+            } else {
+                printFeedback( String.format( "The commit was successful. %d rows were affected.", result.info.affectedRows ) );
+            }
+        }
     }
 
     public void shutdown() {
         myFuse.umount();
         socketClient.close();
+    }
+
+    private void printFeedback( String msg ) {
+        Platform.runLater( () -> feedback.setText( msg ) );
     }
 
 }

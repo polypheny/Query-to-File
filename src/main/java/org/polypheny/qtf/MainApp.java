@@ -37,6 +37,8 @@ public class MainApp extends Application {
     public void start( Stage primaryStage ) {
         Parent root = null;
         FXMLLoader loader = null;
+        //from https://stackoverflow.com/questions/24254000/how-to-force-anti-aliasing-in-javafx-fonts
+        System.setProperty( "prism.lcdtext", "false" );
         try {
             loader = new FXMLLoader( getClass().getResource( "/fxml/sample.fxml" ) );
             root = loader.load();
@@ -44,8 +46,11 @@ public class MainApp extends Application {
             e.printStackTrace();
             System.exit( 1 );
         }
+        //see https://stackoverflow.com/questions/36981599/fxml-minheight-minwidth-attributs-ignored
+        primaryStage.setMinWidth( root.minWidth( -1 ) );
+        primaryStage.setMinHeight( root.minHeight( -1 ) );
         primaryStage.setTitle( "Polypheny-DB Query-To-File" );
-        primaryStage.setScene( new Scene( root, 300, 275 ) );
+        primaryStage.setScene( new Scene( root ) );
         primaryStage.show();
         //see https://stackoverflow.com/questions/44439408/javafx-controller-detect-when-stage-is-closing
         Controller controller = loader.getController();
