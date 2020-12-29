@@ -22,14 +22,23 @@ public class Main {
     public static void main( String[] args ) {
         Main main = new Main();
         main.loadLibFuse();
-        MainApp.run( new String[]{} );
+        if ( args.length > 0 ) {
+            String runConsole = args[0];
+            if ( runConsole.equals( "console" ) ) {
+                new Console();
+            } else {
+                MainApp.run( new String[]{} );
+            }
+        } else {
+            MainApp.run( new String[]{} );
+        }
     }
 
     public void loadLibFuse() {
         //see https://github.com/RaiMan/SikuliX1/issues/350
         // and https://stackoverflow.com/questions/2370545/how-do-i-make-a-target-library-available-to-my-java-app
-        System.setProperty( "jna.library.path", "/usr/local/lib/" );
-        System.load( "/usr/local/lib/libfuse.2.dylib" );
+        System.setProperty( "jna.library.path", QTFConfig.getLibraryPath() );
+        System.load( QTFConfig.getLibfuse() );
     }
 
 }

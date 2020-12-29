@@ -16,27 +16,65 @@
   ~ limitations under the License.
   -->
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.Controller">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="320.0" minWidth="350.0" prefHeight="320.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.Controller">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="246.0" minHeight="10.0" prefHeight="173.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="247.0" minHeight="10.0" prefHeight="101.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="127.0" minHeight="10.0" prefHeight="68.0" vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
-        <TextArea id="console" fx:id="console" prefHeight="200.0" prefWidth="200.0" text="SELECT * FROM public.emps"/>
-        <FlowPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+        <TextArea id="console" fx:id="console" promptText="Query" prefHeight="162.0" prefWidth="600.0"/>
+        <GridPane prefHeight="61.0" prefWidth="600.0" GridPane.rowIndex="1">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="53.0" minHeight="10.0" prefHeight="43.0" vgrow="SOMETIMES"/>
+                <RowConstraints maxHeight="61.0" minHeight="10.0" prefHeight="45.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
             <children>
-                <Button mnemonicParsing="false" onMouseClicked="#reset" text="reset"/>
-                <Button mnemonicParsing="false" onMouseClicked="#submit" text="run"/>
+                <Label prefHeight="85.0" prefWidth="600.0" text="Provide a table name to allow updates via the filesystem. The whole table will be fetched and the query ignored." wrapText="true"/>
+                <TextField id="tableName" fx:id="tableId" promptText="table name" GridPane.rowIndex="1" onKeyReleased="#onTableIdKeyUp"/>
             </children>
-        </FlowPane>
+            <GridPane.margin>
+                <Insets/>
+            </GridPane.margin>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </GridPane>
+        <GridPane GridPane.rowIndex="2">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <children>
+                <FlowPane hgap="5.0" prefHeight="200.0" prefWidth="200.0">
+                    <children>
+                        <Button mnemonicParsing="false" onMouseClicked="#onCommit" text="commit FS changes"/>
+                        <Button mnemonicParsing="false" onMouseClicked="#submit" text="run query"/>
+                    </children>
+                </FlowPane>
+                <Label id="feedback" fx:id="feedback" wrapText="true" GridPane.rowIndex="1"/>
+            </children>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </GridPane>
     </children>
 </GridPane>

@@ -28,8 +28,12 @@ import jnr.ffi.types.size_t;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import lombok.Getter;
-import org.apache.commons.lang3.SystemUtils;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.polypheny.qtf.QTFConfig;
+import org.polypheny.qtf.web.BatchUpdateRequest;
+import org.polypheny.qtf.web.BatchUpdateRequest.Update;
+import org.polypheny.qtf.web.Result;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
@@ -39,19 +43,37 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
 
+@Slf4j
 //see https://github.com/SerCeMan/jnr-fuse/blob/master/src/main/java/ru/serce/jnrfuse/examples/MemoryFS.java
 public class ResultFS extends FuseStubFS {
+
+    public enum Operation {
+        CREATE, UNLINK, WRITE
+    }
+
 
     public static class ResultDirectory extends ResultPath {
 
         private final HashMap<String, ResultPath> contents = new HashMap<>();
+        private final Result result;
+        private final int ithRow;
 
         private ResultDirectory( String name ) {
             super( name );
+            this.result = null;
+            this.ithRow = -1;
         }
 
         public ResultDirectory( String name, ResultDirectory parent ) {
             super( name, parent );
+            this.result = null;
+            this.ithRow = -1;
+        }
+
+        public ResultDirectory( ResultDirectory parent, Result result, int ithRow ) {
+            super( String.valueOf( ithRow ), parent );
+            this.result = result;
+            this.ithRow = ithRow;
         }
 
         public synchronized void add( ResultPath p ) {
@@ -64,21 +86,37 @@ public class ResultFS extends FuseStubFS {
         }
 
         @Override
+        protected boolean isDeleted() {
+            return false;
+        }
+
+        @Override
         protected ResultPath find( String path ) {
-            if ( super.find( path ) != null ) {
-                return super.find( path );
+            ResultPath findPath = super.find( path );
+            if ( findPath != null && !findPath.isDeleted() ) {
+                return findPath;
             }
             while ( path.startsWith( "/" ) ) {
                 path = path.substring( 1 );
             }
             synchronized ( this ) {
                 if ( !path.contains( "/" ) ) {
-                    return contents.get( path );
+                    ResultPath out = contents.get( path );
+                    if ( out != null && !out.isDeleted() ) {
+                        return out;
+                    } else {
+                        return null;
+                    }
                 }
                 String nextName = path.substring( 0, path.indexOf( "/" ) );
                 String rest = path.substring( path.indexOf( "/" ) );
                 if ( contents.containsKey( nextName ) ) {
-                    return contents.get( nextName ).find( rest );
+                    ResultPath out = contents.get( nextName ).find( rest );
+                    if ( out != null && !out.isDeleted() ) {
+                        return out;
+                    } else {
+                        return null;
+                    }
                 }
             }
             return null;
@@ -95,13 +133,50 @@ public class ResultFS extends FuseStubFS {
             contents.put( lastComponent, new ResultDirectory( lastComponent, this ) );
         }
 
-        public synchronized void mkfile( String lastComponent ) {
-            contents.put( lastComponent, new ResultFile( lastComponent, this ) );
+        /**
+         * Create a new file in the FS.
+         *
+         * @param lastComponent Name of the file
+         * @param generateQuery If the creation of this file will lead to a insert/update query
+         */
+        public synchronized void mkfile( String lastComponent, boolean generateQuery ) {
+            if ( generateQuery ) {
+                ResultPath existing = contents.get( lastComponent );
+                if ( existing != null ) {
+                    ResultFile rf = (ResultFile) existing;
+                    rf.setOperation( Operation.CREATE );
+                    rf.setName( lastComponent );
+                } else {
+                    contents.put( lastComponent, new ResultFile( lastComponent, this, true ).setOperation( Operation.CREATE ) );
+                }
+            } else {
+                contents.put( lastComponent, new ResultFile( lastComponent, this, true ) );
+            }
         }
 
         public synchronized void read( Pointer buf, FuseFillDir filler ) {
             for ( ResultPath p : contents.values() ) {
+                if ( p.isDeleted() ) {
+                    continue;
+                }
                 filler.apply( buf, p.name, null, 0 );
+            }
+        }
+
+        protected void getUpdate( BatchUpdateRequest updateRequest ) {
+            Update update = updateRequest.new Update( ithRow );
+            boolean add = false;
+            for ( ResultPath rp : contents.values() ) {
+                if ( rp instanceof ResultFile && result.containsColumn( rp.getName() ) ) {
+                    ResultFile rf = (ResultFile) rp;
+                    if ( rf.createdByFS ) {
+                        update.addValue( rf );
+                        add = true;
+                    }
+                }
+            }
+            if ( add ) {
+                updateRequest.addUpdate( update );
             }
         }
     }
@@ -110,40 +185,45 @@ public class ResultFS extends FuseStubFS {
     public static class ResultFile extends ResultPath {
 
         private ByteBuffer contents = ByteBuffer.allocate( 0 );
-        private final String name;
-        private Object data;
+        @Getter
+        private String dataAsString;
         private String url;
+        boolean createdByFS;
+        @Getter
+        private Operation lastOp = Operation.CREATE;
+        @Getter
+        private boolean deleted = false;
 
-        private ResultFile( String name ) {
-            super( name );
-            this.name = name;
-        }
-
-        private ResultFile( String name, ResultDirectory parent ) {
+        /**
+         * This constructor is called by mkfile
+         * (when a file is created by the FS)
+         */
+        private ResultFile( String name, ResultDirectory parent, boolean createdByFS ) {
             super( name, parent );
-            this.name = name;
+            this.createdByFS = createdByFS;
         }
 
-        public static ResultFile ofData( String name, Object data ) {
-            ResultFile file = new ResultFile( name + ".txt" );
-            file.data = data;
+        public static ResultFile ofData( String name, Object data, ResultDirectory parent ) {
+            ResultFile file = new ResultFile( name + ".txt", parent, false );
             if ( data instanceof String ) {
+                file.dataAsString = (String) data;
                 file.contents = ByteBuffer.wrap( ((String) data).getBytes( StandardCharsets.UTF_8 ) );
             } else if ( data instanceof byte[] ) {
                 file.contents = ByteBuffer.wrap( (byte[]) data );
             } else {
                 String s = gson.toJson( data.toString() );
+                file.dataAsString = s;
                 file.contents = ByteBuffer.wrap( s.getBytes( StandardCharsets.UTF_8 ) );
             }
             return file;
         }
 
-        public static ResultFile ofUrl( String name, String url ) {
+        public static ResultFile ofUrl( String name, String url, ResultDirectory parent ) {
             String extension = "";
             if ( url.contains( "." ) ) {
                 extension = url.substring( url.lastIndexOf( "." ) );
             }
-            ResultFile file = new ResultFile( name + extension );
+            ResultFile file = new ResultFile( name + extension, parent, false );
             file.url = url;
             //put something into contents, else the file read method will not be called
             file.contents = ByteBuffer.wrap( "loading".getBytes( StandardCharsets.UTF_8 ) );
@@ -211,13 +291,25 @@ public class ResultFS extends FuseStubFS {
             }
             return (int) bufSize;
         }
+
+        protected ResultFile setOperation( Operation operation ) {
+            log.debug( name + ": set op: " + operation );
+            this.lastOp = operation;
+            this.deleted = operation == Operation.UNLINK;
+            this.createdByFS = true;
+            this.url = null;
+            return this;
+        }
     }
 
 
     public static abstract class ResultPath {
 
-        private String name;
-        private ResultDirectory parent;
+        @Getter
+        @Setter
+        protected String name;
+        @Getter
+        protected ResultDirectory parent;
 
         private ResultPath( String name ) {
             this( name, null );
@@ -228,8 +320,28 @@ public class ResultFS extends FuseStubFS {
             this.parent = parent;
         }
 
+        public String getPath() {
+            String path = name;
+            if ( parent != null ) {
+                path = parent.getPath() + "/" + path;
+                return path;
+            } else {
+                return "";
+            }
+        }
+
         private synchronized void delete() {
             if ( parent != null ) {
+                parent.deleteChild( this );
+                parent = null;
+            }
+        }
+
+        private synchronized void pseudoDelete() {
+            if ( this instanceof ResultFile ) {
+                ResultFile rf = (ResultFile) this;
+                rf.setOperation( Operation.UNLINK );
+            } else if ( parent != null ) {
                 parent.deleteChild( this );
                 parent = null;
             }
@@ -245,11 +357,17 @@ public class ResultFS extends FuseStubFS {
             return null;
         }
 
+        protected abstract boolean isDeleted();
+
         protected abstract void getattr( FileStat stat, FuseContext context );
 
         private void rename( String newName ) {
             while ( newName.startsWith( "/" ) ) {
                 newName = newName.substring( 1 );
+            }
+            if ( this instanceof ResultFile ) {
+                ((ResultFile) this).setOperation( Operation.WRITE );
+                ((ResultFile) this).createdByFS = true;
             }
             name = newName;
         }
@@ -257,9 +375,11 @@ public class ResultFS extends FuseStubFS {
 
 
     static Gson gson = new Gson();
-
     @Getter
     private final ResultDirectory rootDirectory;
+    @Setter
+    @Getter
+    private Result result;
 
     public ResultFS() {
         this.rootDirectory = new ResultDirectory( "root" );
@@ -271,12 +391,14 @@ public class ResultFS extends FuseStubFS {
 
     @Override
     public int create( String path, @mode_t long mode, FuseFileInfo fi ) {
+        log.debug( "create " + path);
         if ( getPath( path ) != null ) {
             return -ErrorCodes.EEXIST();
         }
         ResultPath parent = getParentPath( path );
         if ( parent instanceof ResultDirectory ) {
-            ((ResultDirectory) parent).mkfile( getLastComponent( path ) );
+            String lastComponent = getLastComponent( path );
+            ((ResultDirectory) parent).mkfile( lastComponent, result != null && result.containsColumn( lastComponent ) );
             return 0;
         }
         return -ErrorCodes.ENOENT();
@@ -291,6 +413,11 @@ public class ResultFS extends FuseStubFS {
             return 0;
         }
         return -ErrorCodes.ENOENT();
+    }
+
+    @Override
+    public int fgetattr( String path, FileStat stbuf, FuseFileInfo fi ) {
+        return getattr( path, stbuf );
     }
 
     private String getLastComponent( String path ) {
@@ -353,25 +480,25 @@ public class ResultFS extends FuseStubFS {
         return 0;
     }
 
-
     @Override
     public int statfs( String path, Statvfs stbuf ) {
-        if ( SystemUtils.IS_OS_WINDOWS ) {
-            // statfs needs to be implemented on Windows in order to allow for copying
-            // data from other devices because winfsp calculates the volume size based
-            // on the statvfs call.
-            // see https://github.com/billziss-gh/winfsp/blob/14e6b402fe3360fdebcc78868de8df27622b565f/src/dll/fuse/fuse_intf.c#L654
-            if ( "/".equals( path ) ) {
-                stbuf.f_blocks.set( 1024 * 1024 ); // total data blocks in file system
-                stbuf.f_frsize.set( 1024 );        // fs block size
-                stbuf.f_bfree.set( 1024 * 1024 );  // free blocks in fs
-            }
-        }
+        final int capacityGB = QTFConfig.getFuseCapacityGB();
+        stbuf.f_bsize.set( 1024 );
+        stbuf.f_frsize.set( 1024 );// fs block size
+        stbuf.f_blocks.set( 1024 * 1024 * capacityGB );// total data blocks in file system
+        stbuf.f_bfree.set( 1024 * 1024 * capacityGB );// free blocks in fs
+        stbuf.f_bavail.set( 1024 * 1024 * capacityGB );//free blocks for non-root
+        stbuf.f_files.set( 1024 );//total file nodes
+        stbuf.f_ffree.set( 1024 );//free file nodes
+        stbuf.f_favail.set( 1024 );//free inodes for non-root
+        stbuf.f_unused.set( 1024 * 1024 * capacityGB );
+
         return super.statfs( path, stbuf );
     }
 
     @Override
     public int rename( String path, String newName ) {
+        log.debug( String.format( "rename %s to %s\n", path, newName ));
         ResultPath p = getPath( path );
         if ( p == null ) {
             return -ErrorCodes.ENOENT();
@@ -383,7 +510,11 @@ public class ResultFS extends FuseStubFS {
         if ( !(newParent instanceof ResultDirectory) ) {
             return -ErrorCodes.ENOTDIR();
         }
-        p.delete();
+        if ( result.containsColumn( p.name ) ) {
+            p.pseudoDelete();
+        } else {
+            p.delete();
+        }
         p.rename( newName.substring( newName.lastIndexOf( "/" ) ) );
         ((ResultDirectory) newParent).add( p );
         return 0;
@@ -391,6 +522,7 @@ public class ResultFS extends FuseStubFS {
 
     @Override
     public int rmdir( String path ) {
+        log.debug( "rmdir " + path );
         ResultPath p = getPath( path );
         if ( p == null ) {
             return -ErrorCodes.ENOENT();
@@ -404,6 +536,7 @@ public class ResultFS extends FuseStubFS {
 
     @Override
     public int truncate( String path, long offset ) {
+        log.debug( "truncate " + path);
         ResultPath p = getPath( path );
         if ( p == null ) {
             return -ErrorCodes.ENOENT();
@@ -417,11 +550,16 @@ public class ResultFS extends FuseStubFS {
 
     @Override
     public int unlink( String path ) {
+        log.debug( "unlink " + path );
         ResultPath p = getPath( path );
         if ( p == null ) {
             return -ErrorCodes.ENOENT();
         }
-        p.delete();
+        if ( result.containsColumn( p.name ) ) {
+            p.pseudoDelete();
+        } else {
+            p.delete();
+        }
         return 0;
     }
 
@@ -432,6 +570,7 @@ public class ResultFS extends FuseStubFS {
 
     @Override
     public int write( String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi ) {
+        log.debug( "write " + path );
         ResultPath p = getPath( path );
         if ( p == null ) {
             return -ErrorCodes.ENOENT();
@@ -439,10 +578,39 @@ public class ResultFS extends FuseStubFS {
         if ( !(p instanceof ResultFile) ) {
             return -ErrorCodes.EISDIR();
         }
-        return ((ResultFile) p).write( buf, size, offset );
+        ResultFile rf = (ResultFile) p;
+        rf.setOperation( Operation.WRITE );
+        return rf.write( buf, size, offset );
+    }
+
+    /**
+     * This method is needed for the OS X `cp` command (copy via terminal)
+     */
+    @Override
+    public int chmod( String path, long mode ) {
+        return super.chmod( path, mode );
     }
 
     public void reset() {
         rootDirectory.contents.clear();
+    }
+
+    /**
+     * Determine changes in FS and create corresponding SQL statements
+     *
+     * @return BatchUpdateRequest
+     */
+    public BatchUpdateRequest getBatchUpdateRequest() {
+        if ( result.table == null ) {
+            return null;
+        }
+        BatchUpdateRequest updateRequest = new BatchUpdateRequest( result );
+        for ( ResultPath rp : rootDirectory.contents.values() ) {
+            if ( rp instanceof ResultDirectory && !rp.isDeleted() ) {
+                ResultDirectory rd = (ResultDirectory) rp;
+                rd.getUpdate( updateRequest );
+            }
+        }
+        return updateRequest;
     }
 }
