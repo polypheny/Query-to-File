@@ -20,9 +20,12 @@ package org.polypheny.qtf.web;
 import com.google.gson.Gson;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.polypheny.qtf.QTFConfig;
 import org.polypheny.qtf.QueryInterface;
 import org.polypheny.qtf.fuse.ResultFS;
 import org.polypheny.qtf.fuse.ResultFS.ResultDirectory;
@@ -36,6 +39,7 @@ public class SocketClient extends WebSocketClient {
     private final ResultFS myFuse;
     private final Gson gson = new Gson();
     private final QueryInterface listener;
+    private Timer timer;
 
     public SocketClient( URI serverURI, ResultFS fuse, QueryInterface listener ) {
         super( serverURI );
@@ -50,7 +54,28 @@ public class SocketClient extends WebSocketClient {
 
     @Override
     public void onClose( int code, String reason, boolean remote ) {
-        log.info( "Closed socket" );
+        //codes: https://tools.ietf.org/html/rfc6455#section-7.4.1
+        if ( remote && code > 1000 ) {
+            //when losing a connection
+            int timeout = QTFConfig.getReconnectionTimeout();
+            this.timer = new Timer();
+            timer.schedule( new TimerTask() {
+                @Override
+                public void run() {
+                    if ( SocketClient.this.isClosed() ) {
+                        try {
+                            log.debug( "Trying to reconnect." );
+                            if ( SocketClient.this.reconnectBlocking() ) {
+                                log.debug( "Successfully reconnected." );
+                                timer.cancel();
+                            }
+                        } catch ( InterruptedException e ) {
+                            log.debug( "Server is down." );
+                        }
+                    }
+                }
+            }, timeout, timeout );
+        }
     }
 
     @Override
@@ -98,5 +123,12 @@ public class SocketClient extends WebSocketClient {
     @Override
     public void onError( Exception ex ) {
         log.error( "an error occurred:" + ex );
+    }
+
+    public void shutdown() {
+        if ( timer != null ) {
+            timer.cancel();
+        }
+        this.close();
     }
 }

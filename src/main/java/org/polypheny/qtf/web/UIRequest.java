@@ -23,6 +23,7 @@ package org.polypheny.qtf.web;
 public abstract class UIRequest {
 
     public final String requestType;
+    public final boolean noLimit = true;
 
     public UIRequest( String requestType ) {
         this.requestType = requestType;

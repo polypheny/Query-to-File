@@ -52,8 +52,12 @@ public abstract class QueryInterface {
         try {
             this.socketClient = new SocketClient( new URI( QTFConfig.getWebSocketUrl() ), myFuse, this );
             log.info( "Connecting to websocket..." );
-            socketClient.connectBlocking();
-            log.info( "Established a connection with the websocket" );
+            if ( socketClient.connectBlocking() ) {
+                log.info( "Established a connection with the websocket" );
+            } else {
+                log.error( "Could not connect to websocket." );
+                System.exit( 1 );
+            }
         } catch ( URISyntaxException | InterruptedException e ) {
             log.error( "Could not connect to websocket.", e );
             System.exit( 1 );

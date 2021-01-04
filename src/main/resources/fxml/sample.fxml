@@ -25,7 +25,7 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="320.0" minWidth="350.0" prefHeight="320.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.Controller">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="320.0" minWidth="350.0" prefHeight="320.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.Controller" stylesheets="@../main.css">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
     </columnConstraints>
@@ -66,6 +66,7 @@
             <children>
                 <FlowPane hgap="5.0" prefHeight="200.0" prefWidth="200.0">
                     <children>
+                        <Button mnemonicParsing="false" onMouseClicked="#openInFolder" fx:id="openInFolder" prefWidth="30"/>
                         <Button mnemonicParsing="false" onMouseClicked="#onCommit" text="commit FS changes"/>
                         <Button mnemonicParsing="false" onMouseClicked="#submit" text="run query"/>
                     </children>
