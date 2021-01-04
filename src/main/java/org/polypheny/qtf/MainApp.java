@@ -43,7 +43,7 @@ public class MainApp extends Application {
             loader = new FXMLLoader( getClass().getResource( "/fxml/sample.fxml" ) );
             root = loader.load();
         } catch ( IOException e ) {
-            e.printStackTrace();
+            log.error( "Could not load fxml", e );
             System.exit( 1 );
         }
         //see https://stackoverflow.com/questions/36981599/fxml-minheight-minwidth-attributs-ignored

@@ -65,4 +65,8 @@ public class QTFConfig {
         return Integer.parseInt( prop.getProperty( "fuseCapacityGB" ) );
     }
 
+    public static int getReconnectionTimeout() {
+        return Integer.parseInt( prop.getProperty( "reconnectionTimeout" ) );
+    }
+
 }
