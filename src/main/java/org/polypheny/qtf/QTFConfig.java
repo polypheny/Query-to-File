@@ -17,9 +17,12 @@
 package org.polypheny.qtf;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import jnr.ffi.Platform;
+import jnr.ffi.Platform.OS;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -61,12 +64,23 @@ public class QTFConfig {
         return getLibraryPath() + prop.getProperty( "libfuse" );
     }
 
+
     public static int getFuseCapacityGB() {
         return Integer.parseInt( prop.getProperty( "fuseCapacityGB" ) );
     }
 
+
     public static int getReconnectionTimeout() {
         return Integer.parseInt( prop.getProperty( "reconnectionTimeout" ) );
+    }
+
+
+    public static File getMountPoint() {
+        if ( Platform.getNativePlatform().getOS() == OS.WINDOWS ) {
+            return new File( "J://" );
+        } else {
+            return new File( System.getProperty( "user.home" ), ".polypheny" + File.separator + "qtf" );
+        }
     }
 
 }
