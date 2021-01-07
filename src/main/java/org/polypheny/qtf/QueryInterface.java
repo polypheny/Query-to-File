@@ -21,6 +21,8 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import jnr.ffi.Platform;
+import jnr.ffi.Platform.OS;
 import kong.unirest.MultipartBody;
 import kong.unirest.Unirest;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +45,14 @@ public abstract class QueryInterface {
     private final File root;
 
     public QueryInterface() {
-        File qtfRoot = new File( System.getProperty( "user.home" ), ".polypheny/qtf" );
-        qtfRoot.mkdirs();
-        root = qtfRoot;
+        root = QTFConfig.getMountPoint();
+        if ( Platform.getNativePlatform().getOS() != OS.WINDOWS ) {
+            root.mkdirs();
+        }
+
         //unmount in case it is still mounted
-        myFuse.umount();
-        myFuse.mount( qtfRoot.toPath() );
+        //myFuse.umount();
+        myFuse.mount( root.toPath(), false, false );
         try {
             this.socketClient = new SocketClient( new URI( QTFConfig.getWebSocketUrl() ), myFuse, this );
             log.info( "Connecting to websocket..." );

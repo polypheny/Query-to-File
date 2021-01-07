@@ -18,7 +18,6 @@ package org.polypheny.qtf;
 
 
 import java.awt.Desktop;
-import java.io.File;
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -96,7 +95,7 @@ public class Controller extends QueryInterface {
         //from https://stackoverflow.com/questions/12339922/opening-finder-explorer-using-java-swing
         if ( Desktop.isDesktopSupported() ) {
             try {
-                Desktop.getDesktop().open( new File( System.getProperty( "user.home" ), ".polypheny/qtf" ) );
+                Desktop.getDesktop().open( QTFConfig.getMountPoint() );
             } catch ( IOException e ) {
                 log.error( "Could not open folder in Finder/Explorer", e );
             }
