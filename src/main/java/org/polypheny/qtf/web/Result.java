@@ -30,18 +30,12 @@ public class Result {
     }
 
 
-    public static class Debug {
-
-        public int affectedRows;
-        public String generatedQuery;
-    }
-
-
     public String table;
     public DbColumn[] header;
     public String[][] data;
     public String error;
-    public Debug info;
+    public Integer affectedRows;
+    public String generatedQuery;
 
     public Result( String error ) {
         this.error = error;
