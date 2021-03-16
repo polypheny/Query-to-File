@@ -51,10 +51,10 @@ public class Console extends QueryInterface {
                     if ( result.error != null ) {
                         System.out.println( "The commit failed: " + result.error );
                     } else {
-                        if ( result.info.affectedRows == 1 ) {
+                        if ( result.affectedRows == 1 ) {
                             System.out.println( "The commit was successful. 1 row was affected." );
                         } else {
-                            System.out.printf( "The commit was successful. %d rows were affected.\n", result.info.affectedRows );
+                            System.out.printf( "The commit was successful. %d rows were affected.\n", result.affectedRows );
                         }
                     }
                 } else if ( lowerCase.startsWith( "select" ) || lowerCase.startsWith( "delete" ) || lowerCase.startsWith( "update" ) ) {
@@ -72,8 +72,8 @@ public class Console extends QueryInterface {
     public void onResultUpdate( Result result ) {
         if ( result.error != null ) {
             System.out.println( "The query failed" );
-        } else if ( result.data == null && result.info != null ) {
-            System.out.printf( "The query was successful and affected %d rows\n", result.info.affectedRows );
+        } else if ( result.data == null && result.affectedRows != null ) {
+            System.out.printf( "The query was successful and affected %d rows\n", result.affectedRows );
         } else {
             System.out.printf( "Fetched %d rows\n", result.data.length );
         }

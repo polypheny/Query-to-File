@@ -58,8 +58,8 @@ public class Controller extends QueryInterface {
         final String message;
         if ( result.error != null ) {
             message = "The query failed";
-        } else if ( result.data == null && result.info != null ) {
-            message = String.format( "The query was successful and affected %d rows.", result.info.affectedRows );
+        } else if ( result.data == null && result.affectedRows != null ) {
+            message = String.format( "The query was successful and affected %d rows.", result.affectedRows );
         } else {
             message = String.format( "Fetched %d rows\n", result.data.length );
         }
@@ -82,10 +82,10 @@ public class Controller extends QueryInterface {
             printFeedback( "The commit failed. Check the console for more information." );
             log.error( "The commit failed: " + result.error );
         } else {
-            if ( result.info.affectedRows == 1 ) {
+            if ( result.affectedRows == 1 ) {
                 printFeedback( "The commit was successful. 1 row was affected." );
             } else {
-                printFeedback( String.format( "The commit was successful. %d rows were affected.", result.info.affectedRows ) );
+                printFeedback( String.format( "The commit was successful. %d rows were affected.", result.affectedRows ) );
             }
         }
     }

@@ -35,7 +35,11 @@ public abstract class UIRequest {
 
         public TableRequest( String tableId ) {
             super( "TableRequest" );
-            this.tableId = tableId;
+            if ( !tableId.contains( "." ) ) {
+                this.tableId = "public." + tableId;
+            } else {
+                this.tableId = tableId;
+            }
         }
 
     }
