@@ -16,8 +16,8 @@ After setting up the FUSE library, configure the path to the fuse binary in the 
 
 This software is still considered beta. There are still some major limitations:
 
-* Windows is not yet supported (MacOS and Linux are working fine).
-* No support for DELETE and INSERT operations.
+* Windows is not yet supported (macOS and Linux are working fine). See [issue](https://github.com/polypheny/Polypheny-DB/issues/297).
+* No support for DELETE and INSERT operations. See [issue](https://github.com/polypheny/Polypheny-DB/issues/298).
 
 ## Roadmap
 
@@ -35,7 +35,7 @@ _Polypheny Query-to-File_ builds upon the great work of several other open sourc
 
 * [Apache Commons](http://commons.apache.org/): A bunch of useful Java utility classes.
 * [GSON](https://github.com/google/gson): Convert Java Objects into their JSON representation and vice versa.
-  [Java-WebSocket](http://tootallnate.github.io/Java-WebSocket/): WebSocket server and client implementation for Java.
+* [Java-WebSocket](http://tootallnate.github.io/Java-WebSocket/): WebSocket server and client implementation for Java.
 * [JNR Fuse](https://github.com/SerCeMan/jnr-fuse): A FUSE implementation in java using Java Native Runtime (JNR).
 * [Log4j](https://logging.apache.org/log4j/2.x/): Fast and flexible logging framework for Java.
 * [OpenJFX](https://openjfx.io/): A framework for creating desktop applications.
