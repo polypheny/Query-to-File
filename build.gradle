@@ -25,10 +25,21 @@ apply plugin: 'java'
 apply plugin: 'io.freefair.lombok'
 apply plugin: 'com.github.johnrengelman.shadow'
 
+group "org.polypheny"
+description = "Polypheny Query-to-File allows to mount a table or the result of a query as file system."
+
+def versionMajor = 0
+def versionMinor = 9
+def versionQualifier = "-SNAPSHOT"
+version = versionMajor + "." + versionMinor + versionQualifier
+
 mainClassName = 'org.polypheny.qtf.Main'
 
-group 'org.polypheny.qtf'
-version = '0.9-SNAPSHOT'
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+}
 
 repositories {
     mavenLocal()

@@ -8,7 +8,7 @@ Query-to-File supports transactions. All changes (edited files) are executed in 
 
 ## Setup
 
-In order to use the tool, you need to have FUSE installed on your computer. See this [installation guide](https://github.com/SerCeMan/jnr-fuse/blob/master/INSTALLATION.md) for more information. Furthermore, you need to have Java version 8 or higher installed on your system.
+In order to use the tool, you need to have FUSE installed on your computer. See this [installation guide](https://github.com/SerCeMan/jnr-fuse/blob/master/INSTALLATION.md) for more information. Furthermore, you need to have Java version 11 or higher installed on your system.
 
 After setting up the FUSE library, configure the path to the fuse binary in the `config.properties` file. The file already contains some typical locations for different operating systems. In the config file, you can also configure the hostname and port of the Polypheny-DB instance.
 
