@@ -23,6 +23,7 @@ package org.polypheny.qtf.web;
 public abstract class UIRequest {
 
     public final String requestType;
+    @SuppressWarnings("unused")
     public final boolean noLimit = true;
 
     public UIRequest( String requestType ) {
@@ -31,6 +32,7 @@ public abstract class UIRequest {
 
     public static class TableRequest extends UIRequest {
 
+        @SuppressWarnings({ "unused", "FieldCanBeLocal" })
         private final String tableId;
 
         public TableRequest( String tableId ) {
@@ -48,6 +50,7 @@ public abstract class UIRequest {
     public static class QueryRequest extends UIRequest {
 
         String query;
+        @SuppressWarnings("unused")
         private final boolean analyze = false;
 
         public QueryRequest( String query ) {

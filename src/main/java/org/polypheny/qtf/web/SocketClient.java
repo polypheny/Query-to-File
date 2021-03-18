@@ -49,7 +49,7 @@ public class SocketClient extends WebSocketClient {
 
     @Override
     public void onOpen( ServerHandshake handshakedata ) {
-        //log.info( "Opened socket" );
+        //nothing to do
     }
 
     @Override
