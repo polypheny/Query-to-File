@@ -46,7 +46,7 @@
             </rowConstraints>
             <children>
                 <Label prefHeight="85.0" prefWidth="600.0" text="Provide a table name to allow updates via the filesystem. The whole table will be fetched and the query ignored." wrapText="true"/>
-                <TextField id="tableName" fx:id="tableId" promptText="table name" GridPane.rowIndex="1" onKeyReleased="#onTableIdKeyUp"/>
+                <TextField id="tableName" fx:id="tableId" promptText="schema.table" GridPane.rowIndex="1" onKeyReleased="#onTableIdKeyUp"/>
             </children>
             <GridPane.margin>
                 <Insets/>
