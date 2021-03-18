@@ -54,8 +54,6 @@ public class MainApp extends Application {
         primaryStage.show();
         //see https://stackoverflow.com/questions/44439408/javafx-controller-detect-when-stage-is-closing
         Controller controller = loader.getController();
-        primaryStage.setOnHidden( e -> {
-            controller.shutdown();
-        } );
+        primaryStage.setOnHidden( e -> controller.shutdown() );
     }
 }
