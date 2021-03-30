@@ -20,6 +20,7 @@ package org.polypheny.qtf;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.polypheny.qtf.web.Result;
 
@@ -42,6 +43,7 @@ public class Console extends QueryInterface {
                 System.out.println( "Enter a query or type 'help' to find more options:" );
                 String query = br.readLine();
                 String lowerCase = query.toLowerCase();
+                Pattern isIdentifier = Pattern.compile( "^(\\w+)(\\.\\w+)?$" );
                 if ( lowerCase.equals( "help" ) ) {
                     System.out.print( "Options:\n'commit': Commit all changes in the file system.\n"
                             + "schema.table: Enter a table identifier (e.g. public.depts) to select all rows from that table and to be able to commit changes in the file system.\n"
@@ -57,10 +59,10 @@ public class Console extends QueryInterface {
                             System.out.printf( "The commit was successful. %d rows were affected.\n", result.affectedRows );
                         }
                     }
-                } else if ( lowerCase.startsWith( "select" ) || lowerCase.startsWith( "delete" ) || lowerCase.startsWith( "update" ) ) {
-                    super.submitQueryRequest( query );
-                } else {
+                } else if ( isIdentifier.matcher( query ).matches() ) {
                     super.submitTableRequest( query );
+                } else {
+                    super.submitQueryRequest( query );
                 }
             } catch ( IOException e ) {
                 log.error( "Could not read line", e );
