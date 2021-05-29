@@ -42,6 +42,9 @@ import ru.serce.jnrfuse.struct.FuseContext;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
+import static org.polypheny.qtf.StartUpController.getHost;
+import static org.polypheny.qtf.StartUpController.getPortNbr;
+
 
 @Slf4j
 //see https://github.com/SerCeMan/jnr-fuse/blob/master/src/main/java/ru/serce/jnrfuse/examples/MemoryFS.java
@@ -260,7 +263,7 @@ public class ResultFS extends FuseStubFS {
         }
 
         private HttpResponse<byte[]> restRequest( final String fileUrl ) {
-            return Unirest.get( QTFConfig.getFileUrl( fileUrl ) ).asBytes();
+            return Unirest.get( String.format( "http://%s:%s/getFile/%s", getHost(), getPortNbr(), fileUrl ) ).asBytes();
         }
 
         private synchronized void truncate( long size ) {

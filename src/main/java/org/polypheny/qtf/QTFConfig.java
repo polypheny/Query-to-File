@@ -44,25 +44,25 @@ public class QTFConfig {
     }
 
 
-    public static String getFileUrl( String fileName ) {
-        return String.format( "http://%s:%s/getFile/%s", prop.getProperty( "host" ), prop.getProperty( "port" ), fileName );
-    }
+//    public static String getFileUrl( String fileName ) {
+//        return String.format( "http://%s:%s/getFile/%s", prop.getProperty( "host" ), prop.getProperty( "port" ), fileName );
+//    }
+//
+//    public static String getRestInterface( String method ) {
+//        return String.format( "http://%s:%s/%s", prop.getProperty( "host" ), prop.getProperty( "port" ), method );
+//    }
+//
+//    public static String getWebSocketUrl() {
+//        return String.format( "ws://%s:%s/webSocket", prop.getProperty( "host" ), prop.getProperty( "port" ) );
+//    }
 
-    public static String getRestInterface( String method ) {
-        return String.format( "http://%s:%s/%s", prop.getProperty( "host" ), prop.getProperty( "port" ), method );
-    }
+//    public static String getLibraryPath() {
+//        return prop.getProperty( "libraryPath" );
+//    }
 
-    public static String getWebSocketUrl() {
-        return String.format( "ws://%s:%s/webSocket", prop.getProperty( "host" ), prop.getProperty( "port" ) );
-    }
-
-    public static String getLibraryPath() {
-        return prop.getProperty( "libraryPath" );
-    }
-
-    public static String getLibfuse() {
-        return getLibraryPath() + prop.getProperty( "libfuse" );
-    }
+//    public static String getLibfuse() {
+//        return getLibraryPath() + prop.getProperty( "libfuse" );
+//    }
 
 
     public static int getFuseCapacityGB() {

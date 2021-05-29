@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.layout.HBox?>
+<GridPane prefHeight="300" prefWidth="400" alignment="center" hgap="10" vgap="5" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.polypheny.qtf.StartUpController" stylesheets="@../main.css">
+    <padding><Insets top="25" right="25" bottom="10" left="20"/></padding>
+
+        <Text text="Please edit for custom settings" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="2"/>
+        <Label text="Host Name:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField id="hostName" fx:id="hostName" text="%host" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label text="Port:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField id="Port" fx:id="port" text="%port" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label text="Library Path:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField id="libraryPath" fx:id="libraryPath" text="%libraryPath" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+        <Label text="Fuse Library File Name:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <TextField id="libfuse" fx:id="libfuse" text="%libfuse" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+    <HBox spacing="10" alignment="center" GridPane.columnIndex="1" GridPane.rowIndex="5">
+        <Button mnemonicParsing="false" onMouseClicked="#submit" text="submit"/>
+    </HBox>
+
+</GridPane>
+
