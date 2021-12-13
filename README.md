@@ -2,7 +2,7 @@
 
 _Polypheny Query-to-File_ lets you materialize the result of an arbitrary query as a file system (set of files in a folder). All files that are materialized in the mounted folder are kept in memory. Multimedia files are initially empty. As you open a multimedia file, the content will be fetched from Polypheny-DB, loaded into memory and then returned. This can lead to waiting times, and your file explorer might not react during this moment.
 
-In addition to executing and materializing an arbitrary query, it is also possible to provide a schema and table name (`schema.table`). The whole table will then be fetched and materialized. The files can be opened, edited. It is also possible to copy the files to a different location. Missing column files can be added (make sure to use the correct filename, the extension does not matter.).
+In addition to executing and materializing an arbitrary query, it is also possible to provide a schema and table name (`schema.table`). The whole table will then be fetched and materialized. The files can be opened, edited. It is also possible to copy the files to a different location. Missing column files can be added (make sure to use the correct filename, the extension does not matter).
 
 Query-to-File supports transactions. All changes (edited files) are executed in one transaction by clicking the  _commit_ button. Uncommitted changes are lost when executing another query.
 
