@@ -34,6 +34,8 @@ import org.polypheny.qtf.web.Result;
 import org.polypheny.qtf.web.SocketClient;
 import org.polypheny.qtf.web.UIRequest.QueryRequest;
 import org.polypheny.qtf.web.UIRequest.TableRequest;
+import static org.polypheny.qtf.StartUpController.getHost;
+import static org.polypheny.qtf.StartUpController.getPortNbr;
 
 
 @Slf4j
@@ -54,7 +56,7 @@ public abstract class QueryInterface {
         //myFuse.umount();
         myFuse.mount( root.toPath(), false, false );
         try {
-            this.socketClient = new SocketClient( new URI( QTFConfig.getWebSocketUrl() ), myFuse, this );
+            this.socketClient = new SocketClient( new URI( String.format( "ws://%s:%s/webSocket", getHost(), getPortNbr() ) ), myFuse, this );
             log.info( "Connecting to websocket..." );
             if ( socketClient.connectBlocking() ) {
                 log.info( "Established a connection with the websocket" );
@@ -87,7 +89,7 @@ public abstract class QueryInterface {
         }
         BatchUpdateRequest request = myFuse.getBatchUpdateRequest();
         //multiPartContent: see https://github.com/Kong/unirest-java/issues/165
-        MultipartBody body = Unirest.post( QTFConfig.getRestInterface( "batchUpdate" ) ).multiPartContent();
+        MultipartBody body = Unirest.post( String.format( "http://%s:%s/%s", getHost(), getPortNbr(), "batchUpdate" ) ).multiPartContent();
         int counter = 0;
         for ( Update update : request.getUpdates() ) {
             for ( Value value : update.getNewValues().values() ) {

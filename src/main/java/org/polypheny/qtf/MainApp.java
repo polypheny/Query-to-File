@@ -18,6 +18,8 @@ package org.polypheny.qtf;
 
 
 import java.io.IOException;
+import java.util.ResourceBundle;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -34,26 +36,22 @@ public class MainApp extends Application {
     }
 
     @Override
-    public void start( Stage primaryStage ) {
+    public void start( Stage stage ) {
         Parent root = null;
         FXMLLoader loader = null;
-        //from https://stackoverflow.com/questions/24254000/how-to-force-anti-aliasing-in-javafx-fonts
-        System.setProperty( "prism.lcdtext", "false" );
         try {
-            loader = new FXMLLoader( getClass().getResource( "/fxml/sample.fxml" ) );
+            loader = new FXMLLoader( getClass().getResource( "/fxml/startup.fxml" ) );
+            loader.setResources(ResourceBundle.getBundle("config"));
             root = loader.load();
         } catch ( IOException e ) {
             log.error( "Could not load fxml", e );
             System.exit( 1 );
         }
-        //see https://stackoverflow.com/questions/36981599/fxml-minheight-minwidth-attributs-ignored
-        primaryStage.setMinWidth( root.minWidth( -1 ) );
-        primaryStage.setMinHeight( root.minHeight( -1 ) );
-        primaryStage.setTitle( "Polypheny-DB Query-To-File" );
-        primaryStage.setScene( new Scene( root ) );
-        primaryStage.show();
-        //see https://stackoverflow.com/questions/44439408/javafx-controller-detect-when-stage-is-closing
-        Controller controller = loader.getController();
-        primaryStage.setOnHidden( e -> controller.shutdown() );
+
+        stage.setMinWidth( root.minWidth( -1 ) );
+        stage.setMinHeight( root.minHeight( -1 ) );
+        stage.setTitle( "Edit Settings" );
+        stage.setScene( new Scene( root ) );
+        stage.show();
     }
 }
