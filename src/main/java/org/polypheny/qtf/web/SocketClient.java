@@ -25,6 +25,7 @@ import java.util.TimerTask;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.polypheny.qtf.Controller;
 import org.polypheny.qtf.QTFConfig;
 import org.polypheny.qtf.QueryInterface;
 import org.polypheny.qtf.fuse.ResultFS;
@@ -113,6 +114,7 @@ public class SocketClient extends WebSocketClient {
             myFuse.add( dir );
         }
         myFuse.setResult( result );
+        Controller.booleanVar.set( false );
     }
 
     @Override

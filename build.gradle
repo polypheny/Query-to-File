@@ -17,6 +17,10 @@ version = versionMajor + "." + versionMinor + versionQualifier
 
 mainClassName = 'org.polypheny.qtf.Main'
 
+applicationDefaultJvmArgs = [
+    '-Dfile.encoding=UTF-8'
+]
+
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
     sourceCompatibility = '11'

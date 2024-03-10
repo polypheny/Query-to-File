@@ -20,6 +20,8 @@ package org.polypheny.qtf;
 import java.awt.Desktop;
 import java.io.IOException;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -37,9 +39,19 @@ public class Controller extends QueryInterface {
     private Label feedback;
     @FXML
     private TextField tableId;
+    @FXML
+    private Label tag;
+
+    @FXML
+    public static BooleanProperty booleanVar = new SimpleBooleanProperty(false);
 
     public Controller() {
         super();
+    }
+
+    public void initialize() {
+        // Bind a Boolean variable to the visible property of tag
+        tag.visibleProperty().bindBidirectional(booleanVar);
     }
 
     @FXML
@@ -87,6 +99,7 @@ public class Controller extends QueryInterface {
             } else {
                 printFeedback( String.format( "The commit was successful. %d rows were affected.", result.affectedRows ) );
             }
+            booleanVar.set( false );
         }
     }
 

@@ -30,6 +30,7 @@ import kong.unirest.Unirest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.polypheny.qtf.Controller;
 import org.polypheny.qtf.QTFConfig;
 import org.polypheny.qtf.web.BatchUpdateRequest;
 import org.polypheny.qtf.web.BatchUpdateRequest.Update;
@@ -289,6 +290,7 @@ public class ResultFS extends FuseStubFS {
                 contents.put( bytesToWrite );
                 contents.position( 0 ); // Rewind
             }
+            Controller.booleanVar.set(true);
             return (int) bufSize;
         }
 
@@ -399,6 +401,7 @@ public class ResultFS extends FuseStubFS {
         if ( parent instanceof ResultDirectory ) {
             String lastComponent = getLastComponent( path );
             ((ResultDirectory) parent).mkfile( lastComponent, result != null && result.containsColumn( lastComponent ) );
+            Controller.booleanVar.set(true);
             return 0;
         }
         return -ErrorCodes.ENOENT();
@@ -447,6 +450,7 @@ public class ResultFS extends FuseStubFS {
         ResultPath parent = getParentPath( path );
         if ( parent instanceof ResultDirectory ) {
             ((ResultDirectory) parent).mkdir( getLastComponent( path ) );
+            Controller.booleanVar.set(true);
             return 0;
         }
         return -ErrorCodes.ENOENT();
@@ -517,6 +521,7 @@ public class ResultFS extends FuseStubFS {
         }
         p.rename( newName.substring( newName.lastIndexOf( "/" ) ) );
         ((ResultDirectory) newParent).add( p );
+        Controller.booleanVar.set(true);
         return 0;
     }
 
@@ -545,6 +550,7 @@ public class ResultFS extends FuseStubFS {
             return -ErrorCodes.EISDIR();
         }
         ((ResultFile) p).truncate( offset );
+        Controller.booleanVar.set(true);
         return 0;
     }
 
@@ -560,6 +566,7 @@ public class ResultFS extends FuseStubFS {
         } else {
             p.delete();
         }
+        Controller.booleanVar.set(true);
         return 0;
     }
 
