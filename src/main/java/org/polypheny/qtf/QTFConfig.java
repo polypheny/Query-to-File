@@ -30,12 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 public class QTFConfig {
 
     static Properties prop;
-
+    static OS os = Platform.getNativePlatform().getOS();
 
     static {
         prop = new Properties();
         //see https://stackoverflow.com/questions/16343939/loading-properties-file-from-static-context
-        try ( InputStream input = QTFConfig.class.getClassLoader().getResourceAsStream( "config.properties" ) ) {
+        String configPath = "config_"+os.toString()+".properties";
+        try ( InputStream input = QTFConfig.class.getClassLoader().getResourceAsStream( configPath ) ) {
             prop.load( input );
         } catch ( IOException ex ) {
             log.error( "Could not load properties" );
